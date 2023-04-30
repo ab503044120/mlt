@@ -562,5 +562,5 @@ add_feature_info("SWIG: PHP" SWIG_PHP "")
 add_feature_info("SWIG: Python" SWIG_PYTHON "")
 add_feature_info("SWIG: Ruby" SWIG_RUBY "")
 add_feature_info("SWIG: Tcl" SWIG_TCL "")
-
+add_subdirectory(test)
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

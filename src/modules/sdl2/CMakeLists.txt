@@ -1,21 +1,25 @@
+
+add_subdirectory(glad)
+
 add_library(mltsdl2 MODULE
-  common.c
-  consumer_sdl2_audio.c
-  consumer_sdl2.c
-  factory.c
-)
+        common.c
+        consumer_sdl2_audio.c
+        consumer_sdl2.c
+        consumer_sdl2_opengl.c
+        factory.c
+        )
 
 file(GLOB YML "*.yml")
 add_custom_target(Other_sdl2_Files SOURCES
-  ${YML}
-)
+        ${YML}
+        )
 
 target_compile_options(mltsdl2 PRIVATE ${MLT_COMPILE_OPTIONS})
 
-target_link_libraries(mltsdl2 PRIVATE mlt m Threads::Threads PkgConfig::sdl2)
+target_link_libraries(mltsdl2 PRIVATE mlt m Threads::Threads PkgConfig::sdl2 glad)
 
 set_target_properties(mltsdl2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${MLT_MODULE_OUTPUT_DIRECTORY}")
 
 install(TARGETS mltsdl2 LIBRARY DESTINATION ${MLT_INSTALL_MODULE_DIR})
 
-install(FILES consumer_sdl2_audio.yml consumer_sdl2.yml DESTINATION ${MLT_INSTALL_DATA_DIR}/sdl2)
+install(FILES consumer_sdl2_audio.yml consumer_sdl2.yml consumer_sdl2_opengl.yml DESTINATION ${MLT_INSTALL_DATA_DIR}/sdl2)

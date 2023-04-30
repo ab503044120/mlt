@@ -237,7 +237,7 @@ void GlslManager::cleanupContext()
 
 void GlslManager::onInit( mlt_properties owner, GlslManager* filter, mlt_event_data )
 {
-	mlt_log_debug( filter->get_service(), "%s\n", __FUNCTION__ );
+	mlt_log_error( filter->get_service(), "haha: %s\n", __FUNCTION__ );
 #ifdef _WIN32
 	std::string path = std::string(mlt_environment("MLT_APPDIR")).append("\\share\\movit");
 #elif defined(RELOCATABLE)

@@ -1,0 +1,12 @@
+cmake_minimum_required(VERSION 3.10)
+add_executable(test1 test1.cpp)
+add_executable(test2 test2.cpp)
+add_executable(test3 test3.cpp)
+add_executable(test4 test4.cpp)
+add_executable(glxgears glxgears.cpp)
+
+target_link_libraries(test1 PUBLIC mlt++ pthread)
+target_link_libraries(test2 PUBLIC mlt++ pthread)
+target_link_libraries(test3 PUBLIC mlt++ pthread)
+target_link_libraries(test4 PUBLIC mlt++ pthread)
+target_link_libraries(glxgears PUBLIC -lGL -lGLEW -lGLU -lGL -lm -lX11 -lXext)
