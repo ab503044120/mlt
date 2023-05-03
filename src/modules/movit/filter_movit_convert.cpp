@@ -29,6 +29,7 @@
 #include "mlt_movit_input.h"
 #include <mlt++/MltProducer.h>
 #include "mlt_flip_effect.h"
+#include "blur_effect.h"
 
 using namespace movit;
 
@@ -444,7 +445,7 @@ static void dispose_pixel_pointers( GlslChain *chain, mlt_service service, mlt_f
 		dispose_pixel_pointers( chain, input_b, frame_b );
 	}
 }
-
+static bool once = false;
 static int movit_render( EffectChain *chain, mlt_frame frame, mlt_image_format *format, mlt_image_format output_format, int width, int height, uint8_t **image )
 {
 	if (width < 1 || height < 1) {
@@ -455,6 +456,18 @@ static int movit_render( EffectChain *chain, mlt_frame frame, mlt_image_format *
 	GlslManager* glsl = GlslManager::get_instance();
 	int error;
 	if ( output_format == mlt_image_opengl_texture ) {
+
+        if (!once) {
+            error = glsl->render_frame_rgba( chain, frame, width, height, image );
+            int len;
+            uint8_t *d  = static_cast<uint8_t *>(mlt_properties_get_data(MLT_FRAME_PROPERTIES(frame),
+                                                                         "image", &len));
+            FILE *file = fopen("./pic.rgba", "w+");
+            fwrite(d, 1, len, file);
+            fclose(file);
+            once = true;
+        }
+
 		error = glsl->render_frame_texture( chain, frame, width, height, image );
 	}
 	else {
@@ -553,7 +566,7 @@ static int convert_image( mlt_frame frame, uint8_t **image, mlt_image_format *fo
 	}
 
 	GlslManager::get_instance()->lock_service( frame );
-	
+
 	// If we're at the beginning of a series of Movit effects, store the input
 	// sent into the chain.
 	if ( output_format == mlt_image_movit ) {
@@ -641,7 +654,10 @@ static int convert_image( mlt_frame frame, uint8_t **image, mlt_image_format *fo
 				}
 
 				chain->add_input( input->get_input() );
-				chain->add_effect( new Mlt::VerticalFlip() );
+                //why flip? i don't need so i commit id
+//				 chain->add_effect( new Mlt::VerticalFlip() );
+                // add this can show frame well
+//				 chain->add_effect( new movit::BlurEffect() );
 				ImageFormat movit_output_format;
 				movit_output_format.color_space = COLORSPACE_sRGB;
 				movit_output_format.gamma_curve = getGammaCurve( properties );
@@ -658,7 +674,11 @@ static int convert_image( mlt_frame frame, uint8_t **image, mlt_image_format *fo
 			if ( *format == mlt_image_yuv422 ) {
 				// We need to convert to planar, which make_input_copy() will do for us.
 				uint8_t *planar = make_input_copy( *format, *image, width, height );
-
+                if (!once) {
+                    FILE *file = fopen("./pic.yuv422p", "w+");
+                    fwrite(planar, 1, width * height * 4 / 2, file);
+                    fclose(file);
+                }
 				if (!planar) {
 					return 1;
 				}

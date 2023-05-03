@@ -467,6 +467,8 @@ static int setup_sdl_video(consumer_sdl_opengl self) {
     int preview_off = mlt_properties_get_int(self->properties, "preview_off");
     if (video_off || preview_off)
         return error;
+    //shared context
+    SDL_GL_SetAttribute(SDL_GL_SHARE_WITH_CURRENT_CONTEXT, 1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -545,7 +547,7 @@ static int consumer_play_video(consumer_sdl_opengl self, mlt_frame frame) {
     if (self->running && !display_off) {
         // Get the image, width and height
         mlt_frame_get_image(frame, &image, &vfmt, &width, &height, 0);
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.00f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
         // bind Texture
@@ -554,82 +556,18 @@ static int consumer_play_video(consumer_sdl_opengl self, mlt_frame frame) {
         // render container
         glUseProgram(self->shaderProgram);
         glBindVertexArray(self->VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_INT, 0);
+//        if (!once) {
+//            error = glsl->render_frame_rgba( chain, frame, width, height, image );
+//            int len;
+//            uint8_t *d  = static_cast<uint8_t *>(mlt_properties_get_data(MLT_FRAME_PROPERTIES(frame),
+//                                                                         "image", &len));
+//            FILE *file = fopen("./pic.rgba", "w+");
+//            fwrite(d, 1, len, file);
+//            fclose(file);
+//            once = true;
+//        }
         SDL_GL_SwapWindow(self->sdl_window);
-//        if (self->running) {
-//            // Determine window's new display aspect ratio
-//            int x = mlt_properties_get_int(properties, "window_width");
-//            if (x && x != self->window_width)
-//                self->window_width = x;
-//            x = mlt_properties_get_int(properties, "window_height");
-//            if (x && x != self->window_height)
-//                self->window_height = x;
-//            double this_aspect = (double) self->window_width / self->window_height;
-//
-//            // Get the display aspect ratio
-//            double display_ratio = mlt_properties_get_double(properties, "display_ratio");
-//
-//            // Determine frame's display aspect ratio
-//            double frame_aspect = mlt_frame_get_aspect_ratio(frame) * width / height;
-//
-//            // Store the width and height received
-//            self->width = width;
-//            self->height = height;
-//
-//            // If using hardware scaler
-//            if (mlt_properties_get(properties, "rescale") != NULL &&
-//                !strcmp(mlt_properties_get(properties, "rescale"), "none")) {
-//                // Use hardware scaler to normalize display aspect ratio
-//                self->sdl_rect.w = frame_aspect / this_aspect * self->window_width;
-//                self->sdl_rect.h = self->window_height;
-//                if (self->sdl_rect.w > self->window_width) {
-//                    self->sdl_rect.w = self->window_width;
-//                    self->sdl_rect.h = this_aspect / frame_aspect * self->window_height;
-//                }
-//            }
-//                // Special case optimisation to negate odd effect of sample aspect ratio
-//                // not corresponding exactly with image resolution.
-//            else if ((int) (this_aspect * 1000) == (int) (display_ratio * 1000)) {
-//                self->sdl_rect.w = self->window_width;
-//                self->sdl_rect.h = self->window_height;
-//            }
-//                // Use hardware scaler to normalize sample aspect ratio
-//            else if (self->window_height * display_ratio > self->window_width) {
-//                self->sdl_rect.w = self->window_width;
-//                self->sdl_rect.h = self->window_width / display_ratio;
-//            } else {
-//                self->sdl_rect.w = self->window_height * display_ratio;
-//                self->sdl_rect.h = self->window_height;
-//            }
-//
-//            self->sdl_rect.x = (self->window_width - self->sdl_rect.w) / 2;
-//            self->sdl_rect.y = (self->window_height - self->sdl_rect.h) / 2;
-//            self->sdl_rect.x -= self->sdl_rect.x % 2;
-//
-//            mlt_properties_set_int(self->properties, "rect_x", self->sdl_rect.x);
-//            mlt_properties_set_int(self->properties, "rect_y", self->sdl_rect.y);
-//            mlt_properties_set_int(self->properties, "rect_w", self->sdl_rect.w);
-//            mlt_properties_set_int(self->properties, "rect_h", self->sdl_rect.h);
-//        }
-//
-//        if (self->running && image) {
-//            unsigned char *planes[4];
-//            int strides[4];
-//
-//            mlt_image_format_planes(vfmt, width, height, image, planes, strides);
-//            if (strides[1]) {
-//                SDL_UpdateYUVTexture(self->sdl_texture, NULL,
-//                                     planes[0], strides[0],
-//                                     planes[1], strides[1],
-//                                     planes[2], strides[2]);
-//            } else {
-//                SDL_UpdateTexture(self->sdl_texture, NULL, planes[0], strides[0]);
-//            }
-//            SDL_RenderClear(self->sdl_renderer);
-//            SDL_RenderCopy(self->sdl_renderer, self->sdl_texture, NULL, &self->sdl_rect);
-//            SDL_RenderPresent(self->sdl_renderer);
-//        }
-
         mlt_events_fire(properties, "consumer-frame-show", mlt_event_data_from_frame(frame));
     } else if (self->running) {
         if (!video_off) {
@@ -648,14 +586,11 @@ static int consumer_play_video(consumer_sdl_opengl self, mlt_frame frame) {
 const char *shader_vertex = MULTILINE(
         \#version 330 core \n
         layout (location = 0) in vec3 aPos; \n
-        layout (location = 1) in vec3 aColor; \n
-        layout (location = 2) in vec2 aTexCoord; \n
-        out vec3 ourColor; \n
+        layout (location = 1) in vec2 aTexCoord; \n
         out vec2 TexCoord; \n
         void main() \n
 { \n
         gl_Position = vec4(aPos, 1.0); \n
-        ourColor = aColor; \n
         TexCoord = vec2(aTexCoord.x, aTexCoord.y); \n
 } \n
 );
@@ -663,7 +598,6 @@ const char *shader_vertex = MULTILINE(
 const char *shader_fragment = MULTILINE(
         \#version 330 core  \n
         out vec4 FragColor; \n
-        in vec3 ourColor; \n
         in vec2 TexCoord; \n
         uniform sampler2D texture1; \n
         void main() \n
@@ -674,15 +608,14 @@ const char *shader_fragment = MULTILINE(
 
 
 float vertices[] = {
-        // positions          // colors           // texture coords
-        0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-        0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-        -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f  // top left
+        // positions          // texture coords
+        0.5f, 0.5f, 0.0f, 1.0f, 1.0f,// top right
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, // bottom left
+        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f// top left
 };
 unsigned int indices[] = {
-        0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+        0, 1, 3, 2
 };
 
 static int initGL(consumer_sdl_opengl self) {
@@ -754,15 +687,12 @@ static int initGL(consumer_sdl_opengl self) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
-    // color attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
     // texture coord attribute
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *) (6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    mlt_events_fire( MLT_FILTER_PROPERTIES(glsl_manager), "init glsl", mlt_event_data_none() );
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *) (3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    mlt_events_fire(MLT_FILTER_PROPERTIES(glsl_manager), "init glsl", mlt_event_data_none());
     end:
     pthread_mutex_unlock(&mlt_sdl_mutex);
     return error;
