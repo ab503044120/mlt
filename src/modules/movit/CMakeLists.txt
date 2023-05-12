@@ -42,6 +42,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 pkg_get_variable(SHADERDIR movit shaderdir)
+message(WARNING "haha"${SHADERDIR})
 target_compile_definitions(mltmovit PRIVATE SHADERDIR="${SHADERDIR}")
 
 set_target_properties(mltmovit PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${MLT_MODULE_OUTPUT_DIRECTORY}")
