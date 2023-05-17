@@ -12,6 +12,9 @@ target_link_libraries(test3 PUBLIC mlt++ pthread)
 add_executable(test4 test4.cpp)
 target_link_libraries(test4 PUBLIC mlt++ pthread)
 
+add_executable(transition_test transition_test.cpp)
+target_link_libraries(transition_test PUBLIC mlt++ pthread)
+
 add_executable(glxgears glxgears.cpp)
 target_link_libraries(glxgears PUBLIC -lGL -lGLU -lGL -lm -lX11 -lXext)
 
