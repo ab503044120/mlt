@@ -15,13 +15,14 @@ add_custom_target(Other_avformat_Files SOURCES
 
 target_compile_options(mltavformat PRIVATE ${MLT_COMPILE_OPTIONS})
 
-target_link_libraries(mltavformat PRIVATE
+target_link_libraries(mltavformat PUBLIC
   mlt
   m
   Threads::Threads
   PkgConfig::libavformat
   PkgConfig::libswscale
   PkgConfig::libavutil
+  -L${libavformat_LIBRARY_DIRS}
 )
 
 target_compile_definitions(mltavformat PRIVATE FILTERS)
@@ -32,24 +33,24 @@ endif()
 
 if(TARGET PkgConfig::libavcodec)
   target_sources(mltavformat PRIVATE producer_avformat.c consumer_avformat.c)
-  target_link_libraries(mltavformat PRIVATE PkgConfig::libavcodec)
+  target_link_libraries(mltavformat PUBLIC PkgConfig::libavcodec)
   target_compile_definitions(mltavformat PRIVATE CODECS)
 endif()
 
 if(TARGET PkgConfig::libavfilter)
   target_sources(mltavformat PRIVATE filter_avfilter.c link_avdeinterlace.c)
-  target_link_libraries(mltavformat PRIVATE PkgConfig::libavfilter)
+  target_link_libraries(mltavformat PUBLIC PkgConfig::libavfilter)
   target_compile_definitions(mltavformat PRIVATE AVFILTER)
 endif()
 
 if(TARGET PkgConfig::libavdevice)
-  target_link_libraries(mltavformat PRIVATE PkgConfig::libavdevice)
+  target_link_libraries(mltavformat PUBLIC PkgConfig::libavdevice)
   target_compile_definitions(mltavformat PRIVATE AVDEVICE)
 endif()
 
 if(TARGET PkgConfig::libswresample)
   target_sources(mltavformat PRIVATE common_swr.c common_swr.h filter_swresample.c link_swresample.c)
-  target_link_libraries(mltavformat PRIVATE PkgConfig::libswresample)
+  target_link_libraries(mltavformat PUBLIC PkgConfig::libswresample)
   target_compile_definitions(mltavformat PRIVATE SWRESAMPLE)
 endif()
 
