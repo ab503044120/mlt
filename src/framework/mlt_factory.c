@@ -19,6 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "framework/mlt_log.h"
 #include "mlt.h"
 #include "mlt_repository.h"
 
@@ -168,6 +169,7 @@ mlt_repository mlt_factory_init(const char *directory)
         if (directory == NULL || !strcmp(directory, ""))
             directory = getenv("MLT_REPOSITORY");
         // If no directory is specified, default to install directory
+        mlt_log_debug(NULL, "MLT_REPOSITORY %s", directory);
         if (directory == NULL)
             directory = PREFIX_LIB;
         // Store the prefix for later retrieval
@@ -207,6 +209,7 @@ mlt_repository mlt_factory_init(const char *directory)
         mlt_events_register(event_object, "consumer-create-done");
 
         // Create the repository of services
+        mlt_log_debug(NULL, "mlt_directory %s", mlt_directory);
         repository = mlt_repository_init(mlt_directory);
 
         // Force a clean up when app closes
